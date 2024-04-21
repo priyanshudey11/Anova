@@ -17,6 +17,7 @@ library(mosaic)
 library(ggformula)
 library(Lock5Data)
 library(tinytex)
+library(car)
 ```
 
 ## Collaboration rules:
@@ -239,5 +240,92 @@ summary(anova_model_2)
         The ANCOVA results demonstrated that both the car model and mileage significantly affected car prices (p \< 0.001 for both factors). Thus, we reject both null hypotheses (H0d and H0e) and accept the alternative hypotheses (H1d and H1e), concluding that different car models significantly affect car prices, and mileage has a significant influence on car prices when adjusting for the model.
 
 # Assess Model Conditions
+```{r}
+# Fit the ANOVA model
+anova_model_1 <- aov(price ~ location + model + location:model, data = combined_data)
+
+# Plotting Q-Q plot of residuals to check for normality
+qqnorm(residuals(anova_model_1))
+qqline(residuals(anova_model_1), col = "steelblue")
+``` 
+The qq plot shows some deviation from normailty particularly in the tails, but the data is approximately normal.
+```{r}
+# Fit the ANOVA model
+
+# Calculate residuals and fitted values
+residuals <- residuals(anova_model_1)
+fitted_values <- fitted(anova_model_1)
+
+# Create a Tukey's Mean-Difference Plot (residuals vs. fitted values)
+plot(fitted_values, residuals,
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Modified Tukey's Mean-Difference Plot")
+
+# Adding a horizontal line at zero to help assess even spread
+abline(h = 0, col = "red", lwd = 2)
+
+
+# Adding labels if needed 
+text(fitted_values, residuals, labels = row.names(combined_data), cex = 0.7, pos = 4)
+
+```
+ The spread of residuals seems consistent across different fitted values, although some outliers are evident. There doesn't appear to be a funnel-shaped pattern, which suggests that homoscedasticity is reasonable.
+
+```{r}
+# Plot residuals against fitted values to look for patterns
+plot(fitted(anova_model_1), residuals(anova_model_1),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values")
+abline(h = 0, col = "red")
+```
+The plot for residuals against shows a random dispersion of residuals around the horizontal line, suggesting that the assumption of independence is met.
+
+```{r}
+# Plot mileage vs. price with a regression line to check for linearity
+ggplot(combined_data, aes(x = mileage, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  labs(title = "Scatter Plot of Price vs Mileage",
+       x = "Mileage", y = "Price")
+
+```
+The plot shows random dispersion of residuals around the hornizontal line, indicating that the assumption of indepencdence met.
+```{r}
+# Fit model with interaction
+ancova_model_check <- lm(price ~ model * mileage, data = combined_data)
+
+# Use ANOVA to test if interaction terms are significant
+anova_interaction_check <- anova(ancova_model_check)
+print(anova_interaction_check)
+```
+The ANOVA table shows that both the car model and mileage, as well as their interaction, are highly significant predictors of price (p < 2.2e-16), indicating that,the model of the car (model) has a strong effect on the car's price., mileage (mileage) also significantly affects the car's price, the interaction between car model and mileage (model:mileage) is significant, suggesting that the effect of mileage on price is not consistent across different car models.
+
+```{r}
+# Fit the ANCOVA model
+ancova_model_2 <- lm(price ~ model + mileage + model:mileage, data = combined_data)
+
+# Calculate residuals and fitted values
+residuals_ancova <- residuals(ancova_model_2)
+fitted_values_ancova <- fitted(ancova_model_2)
+
+# Create a Tukey's Mean-Difference Plot (residuals vs. fitted values)
+plot(fitted_values_ancova, residuals_ancova,
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Modified Tukey's Mean-Difference Plot for ANCOVA")
+
+# Adding a horizontal line at zero to help assess even spread
+abline(h = 0, col = "red", lwd = 2)
+
+
+text(fitted_values_ancova, residuals_ancova, labels = row.names(combined_data), cex = 0.7, pos = 4)
+
+```
+The plot also does not indicate obvious signs of changing variance across the range of fitted values. Outliers are present however, which may be worth investigating further.
+
+
+
 
 # Conclusions
+The primary objective of this study was to investigate the influence of used vechiles pricing based on the geographical location, milage, and car model.The car model has a significant impact on the pricing of the used vechiles. The ANOVa results indicate that differnt car modesl have differnt average prices with the F-150 having the higher car price between the two cars.  While locatin was not found to be significant the ANOVA model, there was a significant interaction effect between location and car model on car prices. This implies that the influnce of car model on prive varies by geographic location. The dignostic plots revealed some devations from nomaloty and the presence of outliers but suporrted the CAINER assumotions well enogh to go on with the experiment. The findings highlight the complextiy of used cehile priceing and the importance of cinsidering multifacted set of factors. Consumers and auto dealers can make a estimated guess on what the car vehicle price should be based on the milage, model and location of where it is being sold or bought. While the study provided beneficial insights, further research could explore additional factors such as the vehicle's condition, features, and market demand to enhance the predictive accuracy of car pricing models. In conclusion tje rei;ts offer a foundation for a more informed understanding of vehicle valuation.
