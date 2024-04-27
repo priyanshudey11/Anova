@@ -40,51 +40,21 @@ The two chosen locations offer contrasting demographics and economic landscapes:
 
 State College, PA (16801): Known primarily as a college town, home to Penn State University, which may influence vehicle demand and pricing,coded as 1. Charlotte, NC (28207): A major metropolitan area with a diverse economy and a larger market for various types of vehicles,coded as 0.
 
-## Research Question(s)
+## Research Question
 
-### **Two-Way Factorial Model with Interaction (ANOVA Model 1)**
+How does car model,location and mileage affect car prices, specifically examining how much of the variance in car prices can be attributed to differences in model and location after controlling for mileage?
 
-#### **Research Question**
-
-How do location and car model both independently and interactively influence car prices? Specifically, does the effect of car model on pricing differ depending on the location?
+### **Two-Way Factorial ANCOVA Model with Interaction**
 
 #### **Hypotheses**
 
 -   **Null Hypotheses (H0):**
 
-    -   **H0a:** There is no significant main effect of location on car prices, meaning that car prices do not differ between locations.
-
-    -   **H0b:** There is no significant main effect of model on car prices, meaning that car prices do not differ among models.
-
-    -   **H0c:** There is no significant interaction effect between location and model on car prices, meaning that the effect of the car model on price does not vary by location.
+    -   **H0:** Interaction between location and model does not significantly influence affect the price of cars when adjusting for mileage, meaning all models would have the same pricing adjusted for mileage.
 
 -   **Alternative Hypotheses (Ha):**
 
-    -   **Ha1:** There is a significant main effect of location on car prices.
-
-    -   **Ha2:** There is a significant main effect of model on car prices.
-
-    -   **Ha3:** There is a significant interaction effect between location and model on car prices.
-
-### **ANCOVA Model (ANOVA Model 2)**
-
-#### **Research Question**
-
-How does car model and mileage affect car prices, specifically examining how much of the variance in car prices can be attributed to differences in model after controlling for mileage?
-
-#### **Hypotheses**
-
--   **Null Hypotheses (H0):**
-
-    -   **H0d:** Car model does not significantly affect the price of cars when adjusting for mileage, meaning all models would have the same pricing adjusted for mileage.
-
-    -   **H0e:** Mileage does not significantly influence the price of cars when adjusting for the model, suggesting that changes in mileage do not affect the pricing once the model is accounted for.
-
--   **Alternative Hypotheses (Ha):**
-
-    -   **Ha4:** Car model significantly affects the price of cars when adjusting for mileage.
-
-    -   **Ha5:** Mileage significantly influences the price of cars when adjusting for the model.
+    -   **Ha:** Interaction between location and model significantly affects the price of cars when adjusting for mileage.
 
 # EDA
 
@@ -169,12 +139,8 @@ This scatter plot displays the relationship between price and mileage for each c
 Image 5: Line Plot of Prices by Location and Model
 
 This line plot presents the mean prices for each combination of location and car model. The F150 model has the highest mean price in both locations, followed by the Civic and then the Cherokee. The mean prices for the Civic and Cherokee are relatively similar across locations, while the F150 shows a more substantial difference, with a higher mean price in State College.
-
-# Model Fitting
-
-
 ```{r}
-# Plot mileage vs. price with a regression line to check for linearity
+# Scatter plot to check the linearity assumption between mileage and price
 ggplot(combined_data, aes(x = mileage, y = price)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, col = "blue") +
@@ -182,153 +148,105 @@ ggplot(combined_data, aes(x = mileage, y = price)) +
        x = "Mileage", y = "Price")
 
 ```
-The plot shows random dispersion of residuals around the hornizontal line, indicating that the assumption of indepencdence met.
-
-```{r}
-#Two-Way Factorial Model with Interaction
-anova_model_1 <- aov(lm(price ~ location+model+location * model, data = combined_data))
-summary(anova_model_1)
-
-```
-
-1.  **Location:**
-
-    -   The location has 1 degree of freedom (Df) indicating it's a comparison between two groups (e.g., two different locations).
-
-    -   The sum of squares (Sum Sq) for location is 208, and the mean square (Mean Sq), which is the Sum Sq divided by the Df, is also 208.
-
-    -   The F value is 2.537, which is the ratio of the Mean Sq of location to the Mean Sq of the residuals.
-
-    -   The p-value for location is 0.11139, which is greater than 0.05, suggesting that there is no statistically significant difference in car prices between the two locations at the conventional alpha level of 0.05.
-
-2.  **Model:**
-
-    -   The model has 2 degrees of freedom, indicating three different car models are being compared.
-
-    -   The Sum Sq for model is 147,551, with a Mean Sq of 73,775, which is quite large relative to the Sum Sq for location.
-
-    -   The F value for the model is 898.604, which is highly significant with a p-value less than 2e-16 (practically zero). This indicates a very strong effect of the car model on price; there are statistically significant differences in car prices among the three models.
-
-3.  **Location:Model (Interaction):**
-
-    -   The interaction term has 2 degrees of freedom, which aligns with the number of interaction comparisons available in a 2 x 3 setup (two locations times three models).
-
-    -   The Sum Sq for the interaction is 970, with a Mean Sq of 485.
-
-    -   The F value for the interaction is 5.905, which has a p-value of 0.00278. This is less than 0.01, indicating that there is a statistically significant interaction effect between location and model on car prices. This means that the effect of the car model on price is different across locations.
-
-        The ANOVA results indicated that the main effect of location on car prices was not statistically significant (p \> 0.05), leading us to retain the null hypothesis (H0a) that there is no significant difference in car prices between the locations tested. However, the car model had a highly significant effect on price (p \< 0.001), so we reject the null hypothesis (H0b) and accept the alternative hypothesis (H1b) that at least one model's mean price is different from the others. Furthermore, there was a statistically significant interaction between location and model (p \< 0.01), leading us to reject the null hypothesis (H0c) and accept the alternative hypothesis (H1c) that the effect of car model on price varies by location.
+# Model Fitting
 
 ```{r}
 #ANCOVA
-anova_model_2 <- aov(lm(price ~ model+mileage, data = combined_data))
-summary(anova_model_2)
+anova_model <- aov(lm(price ~ model+mileage+location+location*model, data = combined_data))
+summary(anova_model)
 ```
 
-1.  **Model:**
+1.  **Model\*location :**
 
     -   **Degrees of Freedom (Df):** The model has 2 degrees of freedom, which suggests there are three different car models being compared.
 
-    -   **Sum of Squares (Sum Sq):** The Sum Sq for the model is 147,173, which is a measure of the total variation attributed to the differences in the mean prices across the car models.
+    -   **Sum of Squares (Sum Sq):** The Sum Sq for the model is 539, which is a measure of the total variation attributed to the differences in the mean prices across the car models.
 
-    -   **Mean Square (Mean Sq):** The Mean Sq, which is the Sum Sq divided by the Df, is 73,586. This represents the average variation per model category.
+    -   **Mean Square (Mean Sq):** The Mean Sq, which is the Sum Sq divided by the Df, is 270. This represents the average variation per model category.
 
-    -   **F-value:** The F-value is 1833, which is substantially large, indicating a strong effect of the model on price.
+    -   **F-value:** The F-value is 6.887, which is substantially large, indicating a strong effect of the model on price.
 
-    -   **p-value (Pr(\>F)):** The p-value is less than 2e-16 (indicating a value very close to zero), which is highly significant. This means that there is a statistically significant difference in car prices among the different models.
+    -   **p-value (Pr(\>F)):** The p-value is less than 0.00105, which is highly significant. This means interaction between location and model significantly affects the price of cars when adjusting for mileage.
 
-2.  **Mileage:**
-
-    -   **Degrees of Freedom (Df):** Mileage has 1 degree of freedom, as it is a continuous predictor.
-
-    -   **Sum of Squares (Sum Sq):** The Sum Sq for mileage is 72,619, indicating the variation in car prices due to mileage.
-
-    -   **Mean Square (Mean Sq):** The Mean Sq is also 72,619 since there is only one mileage variable.
-
-    -   **F-value:** The F-value for mileage is 1809, which is also quite large and indicative of a strong effect.
-
-    -   **p-value (Pr(\>F)):** Like the model, the p-value for mileage is less than 2e-16, suggesting a very strong statistical significance. This implies that mileage has a significant effect on car prices.
-
-        The ANCOVA results demonstrated that both the car model and mileage significantly affected car prices (p \< 0.001 for both factors). Thus, we reject both null hypotheses (H0d and H0e) and accept the alternative hypotheses (H1d and H1e), concluding that different car models significantly affect car prices, and mileage has a significant influence on car prices when adjusting for the model.
+    The ANCOVA results demonstrated that both the car model and location significantly affected car prices (p \< 0.05 for the interaction term). Thus, we reject the null hypotheses (H0) and accept the alternative hypotheses (Ha), concluding that different car models and locations significantly affect car prices, after adjusting mileage(p=0.00105).
 
 # Assess Model Conditions
-```{r}
-# Fit the ANOVA model
-anova_model_1 <- aov(price ~ location + model + location:model, data = combined_data)
-
-# Plotting Q-Q plot of residuals to check for normality
-qqnorm(residuals(anova_model_1))
-qqline(residuals(anova_model_1), col = "steelblue")
-``` 
-The qq plot shows some deviation from normailty particularly in the tails, but the data is approximately normal.
-```{r}
-# Fit the ANOVA model
-
-# Calculate residuals and fitted values
-residuals <- residuals(anova_model_1)
-fitted_values <- fitted(anova_model_1)
-
-# Create a Tukey's Mean-Difference Plot (residuals vs. fitted values)
-plot(fitted_values, residuals,
-     xlab = "Fitted Values",
-     ylab = "Residuals",
-     main = "Modified Tukey's Mean-Difference Plot")
-
-# Adding a horizontal line at zero to help assess even spread
-abline(h = 0, col = "red", lwd = 2)
 
 
-# Adding labels if needed 
-text(fitted_values, residuals, labels = row.names(combined_data), cex = 0.7, pos = 4)
-
-```
- The spread of residuals seems consistent across different fitted values, although some outliers are evident. There doesn't appear to be a funnel-shaped pattern, which suggests that homoscedasticity is reasonable.
-
-```{r}
-# Plot residuals against fitted values to look for patterns
-plot(fitted(anova_model_1), residuals(anova_model_1),
-     xlab = "Fitted Values", ylab = "Residuals",
-     main = "Residuals vs. Fitted Values")
-abline(h = 0, col = "red")
-```
-The plot for residuals against shows a random dispersion of residuals around the horizontal line, suggesting that the assumption of independence is met.
-
-
-```{r}
-# Fit model with interaction
-ancova_model_check <- lm(price ~ model * mileage, data = combined_data)
-
-# Use ANOVA to test if interaction terms are significant
-anova_interaction_check <- anova(ancova_model_check)
-print(anova_interaction_check)
-```
-The ANOVA table shows that both the car model and mileage, as well as their interaction, are highly significant predictors of price (p < 2.2e-16), indicating that,the model of the car (model) has a strong effect on the car's price., mileage (mileage) also significantly affects the car's price, the interaction between car model and mileage (model:mileage) is significant, suggesting that the effect of mileage on price is not consistent across different car models.
+### Checking Normality
 
 ```{r}
 # Fit the ANCOVA model
-ancova_model_2 <- lm(price ~ model + mileage + model:mileage, data = combined_data)
+ancova_model <- lm(price ~ model * mileage + location, data = combined_data)
 
-# Calculate residuals and fitted values
-residuals_ancova <- residuals(ancova_model_2)
-fitted_values_ancova <- fitted(ancova_model_2)
-
-# Create a Tukey's Mean-Difference Plot (residuals vs. fitted values)
-plot(fitted_values_ancova, residuals_ancova,
-     xlab = "Fitted Values",
-     ylab = "Residuals",
-     main = "Modified Tukey's Mean-Difference Plot for ANCOVA")
-
-# Adding a horizontal line at zero to help assess even spread
-abline(h = 0, col = "red", lwd = 2)
-
-
-text(fitted_values_ancova, residuals_ancova, labels = row.names(combined_data), cex = 0.7, pos = 4)
+# Checking normality of residuals using a Q-Q plot
+qqnorm(residuals(ancova_model))
+qqline(residuals(ancova_model), col = "steelblue")
 
 ```
-The plot also does not indicate obvious signs of changing variance across the range of fitted values. Outliers are present however, which may be worth investigating further.
+### Checking Homoscedasticity
+
+```{r}
+# Scatter plot of residuals against fitted values to assess homoscedasticity
+plot(fitted(ancova_model), residuals(ancova_model),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values Plot")
+abline(h = 0, col = "red")
+```
+
+### Comments
+
+#### Normality
+  The qq-plot of shows devations from normality esspecially at the tails of the distribution
+#### Homoscedasticity
+- The residuals vs. fitted values plot shows a random dispersion of residuals around the horizontal line, suggesting that homoscedasticity is reasonable.
 
 
 
+```{r}
+# Fit the ANCOVA model
+ancova_model <- lm(price ~ model * mileage + location, data = combined_data)
 
+# Calculate the mean of each fitted value and its corresponding residual
+residuals <- residuals(ancova_model)
+fitted_values <- fitted(ancova_model)
+mean_residuals <- apply(cbind(residuals, fitted_values), 1, mean)
+
+# Create the Tukey mean-difference plot
+plot(mean_residuals, residuals,
+     xlab = "Mean of Fitted and Observed Values",
+     ylab = "Residuals",
+     main = "Tukey Mean-Difference Plot")
+abline(h = 0, col = "red")
+anova_model <- aov(price ~ model + location, data = combined_data)
+
+# Perform Tukey HSD test
+TukeyHSD(anova_model)
+```
+
+```{r}
+# Apply log tinverse ransformation to the 'price' variable to stabilize variance
+combined_data$inv_price <- 1/combined_data$price
+
+inv_ancova_model <- lm(inv_price ~ model * mileage + location, data = combined_data)
+summary(inv_ancova_model)
+
+# And then check the model assumptions again, starting with normality
+qqnorm(residuals(inv_ancova_model))
+qqline(residuals(inv_ancova_model), col = "steelblue")
+# Homoscedasticity check using residuals vs. fitted values plot
+plot(fitted(inv_ancova_model), residuals(inv_ancova_model),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values Plot")
+abline(h = 0, col = "red")
+```
+
+### Comments
+  Based on the tukey summary we where able to see that a inverse transformation would be better sutied for the data. 
+#### Normality
+  The new qq-plot of shows devations at the end with some outliyers but the data is more normal than before
+#### Homoscedasticity
+- The residuals vs. fitted values plot shows a random dispersion of residuals around the horizontal line, suggesting that homoscedasticity is reasonable.
 # Conclusions
-The primary objective of this study was to investigate the influence of used vechiles pricing based on the geographical location, milage, and car model.The car model has a significant impact on the pricing of the used vechiles. The ANOVa results indicate that differnt car modesl have differnt average prices with the F-150 having the higher car price between the two cars.  While locatin was not found to be significant the ANOVA model, there was a significant interaction effect between location and car model on car prices. This implies that the influnce of car model on prive varies by geographic location. The dignostic plots revealed some devations from nomaloty and the presence of outliers but suporrted the CAINER assumotions well enogh to go on with the experiment. The findings highlight the complextiy of used cehile priceing and the importance of cinsidering multifacted set of factors. Consumers and auto dealers can make a estimated guess on what the car vehicle price should be based on the milage, model and location of where it is being sold or bought. While the study provided beneficial insights, further research could explore additional factors such as the vehicle's condition, features, and market demand to enhance the predictive accuracy of car pricing models. In conclusion tje rei;ts offer a foundation for a more informed understanding of vehicle valuation.
+
+The primary objective of this study was to investigate the influence of used vechiles pricing based on the geographical location, milage, and car model.The car model has a significant impact on the pricing of the used vechiles. The ANOVa results indicate that differnt car modesl have differnt average prices with the F-150 having the higher car price between the two cars. While locatin was not found to be significant the ANOVA model, there was a significant interaction effect between location and car model on car prices. This implies that the influnce of car model on prive varies by geographic location. The dignostic plots revealed some devations from nomaloty and the presence of outliers but suporrted the CAINER assumotions well enogh to go on with the experiment. The findings highlight the complextiy of used cehile priceing and the importance of cinsidering multifacted set of factors. Consumers and auto dealers can make a estimated guess on what the car vehicle price should be based on the milage, model and location of where it is being sold or bought. While the study provided beneficial insights, further research could explore additional factors such as the vehicle's condition, features, and market demand to enhance the predictive accuracy of car pricing models. In conclusion tje rei;ts offer a foundation for a more informed understanding of vehicle valuation.
