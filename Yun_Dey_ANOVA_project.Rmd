@@ -172,6 +172,18 @@ This line plot presents the mean prices for each combination of location and car
 
 # Model Fitting
 
+
+```{r}
+# Plot mileage vs. price with a regression line to check for linearity
+ggplot(combined_data, aes(x = mileage, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  labs(title = "Scatter Plot of Price vs Mileage",
+       x = "Mileage", y = "Price")
+
+```
+The plot shows random dispersion of residuals around the hornizontal line, indicating that the assumption of indepencdence met.
+
 ```{r}
 #Two-Way Factorial Model with Interaction
 anova_model_1 <- aov(lm(price ~ location+model+location * model, data = combined_data))
@@ -281,16 +293,7 @@ abline(h = 0, col = "red")
 ```
 The plot for residuals against shows a random dispersion of residuals around the horizontal line, suggesting that the assumption of independence is met.
 
-```{r}
-# Plot mileage vs. price with a regression line to check for linearity
-ggplot(combined_data, aes(x = mileage, y = price)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, col = "blue") +
-  labs(title = "Scatter Plot of Price vs Mileage",
-       x = "Mileage", y = "Price")
 
-```
-The plot shows random dispersion of residuals around the hornizontal line, indicating that the assumption of indepencdence met.
 ```{r}
 # Fit model with interaction
 ancova_model_check <- lm(price ~ model * mileage, data = combined_data)
