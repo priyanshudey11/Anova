@@ -151,7 +151,7 @@ ggplot(combined_data, aes(x = mileage, y = price)) +
 # Model Fitting
 
 ```{r}
-#ANCOVA
+#ANCOA
 anova_model <- aov(lm(price ~ model+mileage+location+location*model, data = combined_data))
 summary(anova_model)
 ```
