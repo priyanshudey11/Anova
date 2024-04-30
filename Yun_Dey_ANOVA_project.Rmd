@@ -139,15 +139,7 @@ This scatter plot displays the relationship between price and mileage for each c
 Image 5: Line Plot of Prices by Location and Model
 
 This line plot presents the mean prices for each combination of location and car model. The F150 model has the highest mean price in both locations, followed by the Civic and then the Cherokee. The mean prices for the Civic and Cherokee are relatively similar across locations, while the F150 shows a more substantial difference, with a higher mean price in State College.
-```{r}
-# Scatter plot to check the linearity assumption between mileage and price
-ggplot(combined_data, aes(x = mileage, y = price)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, col = "blue") +
-  labs(title = "Scatter Plot of Price vs Mileage",
-       x = "Mileage", y = "Price")
 
-```
 # Model Fitting
 
 ```{r}
@@ -178,12 +170,6 @@ summary(anova_model)
 # Fitting the MLR model
 mlr_model <- lm(price ~ mileage, data = combined_data)
 
-# Checking linearity and independence for MLR
-ggplot(combined_data, aes(x = mileage, y = price)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, col = "blue") +
-  labs(title = "Scatter Plot of Price vs Mileage for MLR",
-       x = "Mileage", y = "Price")
 
 # Check for normality of residuals
 qqnorm(residuals(mlr_model))
@@ -198,8 +184,7 @@ abline(h = 0, col = "red")
 ### Comments
 
 #### Linearity:
-The scatter plot shows that the data seems to be linear
-
+The data seems to be random and the linearity condition seems to be met with the data points being scattered randomly across the Residuals vs Fitted Values.  
 #### Independence
 The data is assumed to be independent due to the design of the data.
 
@@ -208,7 +193,7 @@ The QQ-plot shows that the tail ends are not symmetric with the data which could
 #### Independence
 
 #### Equal Variance
-The Residuals seem to have nonconstant variance in which the points seem to be skewed to the right
+The Residuals seem to have non constant variance in which the points seem to be skewed to the right
 
 #### Randomness
 The data collected from the source seems to be a random sampling of data points.
@@ -229,25 +214,66 @@ plot(fitted(anova_model1), residuals(anova_model1),
      main = "Residuals vs. Fitted Values Plot for ANOVA")
 abline(h = 0, col = "red")
 
-# Perform Tukey HSD test to assess differences among group means
-TukeyHSD(anova_model1)
+library(dplyr)
+library(ggplot2)
+
+# Fit the model
+model_fit <- lm(price ~ model + location + model:location, data = combined_data)
+
+# Summarize overlays with needed effects
+Data_Overlays <- combined_data %>%
+  mutate(
+    grand_mean = mean(price), # Calculate the grand mean of price
+    model_effect = ave(price, model, FUN = mean) - grand_mean, # Effect of each model
+    location_effect = ave(price, location, FUN = mean) - grand_mean # Effect of each location
+  ) %>%
+  mutate(
+    # Compute residuals from the model
+    Residuals = residuals(model_fit),
+    # Compute Comparison Values for Tukey Nonadditivity Plot
+    Comparison_Values = model_effect * location_effect / grand_mean
+  )
+
+# Plot residuals vs comparison values & fit simple linear regression
+ggplot(Data_Overlays, aes(x = Comparison_Values, y = Residuals)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    title = "Tukey's Nonadditivity Plot",
+    x = "Comparison Values",
+    y = "Residuals"
+  )
+
+# Fit a linear model to residuals vs comparison values
+comparison_fit <- lm(Residuals ~ Comparison_Values, data = Data_Overlays)
+summary(comparison_fit)
+
+# Calculate the optimal transformation power
+slope <- coef(comparison_fit)["Comparison_Values"]
+power <- 1 - slope
+power <- ifelse(power == 0, "logarithmic transformation", power)
+
+# Output the optimal transformation
+print(paste("The transformation power is", power))
+
 
 ```
 ### Comments
 
 #### Constant Additivity
-The data seems to have to have some outriders and a lot deviation from the residual line. However, there seems to be no pattern therefore this condition is not correct.
+The data seems to have to have some outriders and a lot deviation from the residual line. However, there seems to be no pattern therefore this condition acceptable.
 
 #### Independence
 This is assumed based on how the data was collected from the provided data set.
 #### Normality
-The tails deviate from the ends suggesting that the data is skewed right.
+According to the QQ-plot the data seems to be Normal.
 
 #### Equal Variance
-There seems to be no pattern in the 
+The points look to be normally distributed through the data.
 #### Randomness
+The data is assumed to be random from the way the data was collected. 
 
-
+After calculating the optimal transformation, the data was close to 1 therefore there is no transformation needed.
 ##MLR Transformation
 ```{r}
 
@@ -287,32 +313,7 @@ After the transformation, the data seems to fit the LINER conditions more sugges
 
 
 
-##Anova Transformation
 
-```{r}
-# Apply inverse transformation to the 'price' variable to stabilize variance
-combined_data$inv_price <- log(combined_data$price)
-
-# Refit the ANCOVA model with the transformed variable
-inv_anova_model <- lm(price ~ model + location + model:location, data = combined_data)
-summary(inv_anova_model)
-
-# Re-checking model assumptions
-qqnorm(residuals(inv_anova_model))
-qqline(residuals(inv_anova_model), col = "steelblue")
-plot(fitted(inv_anova_model), residuals(inv_anova_model),
-     xlab = "Fitted Values", ylab = "Residuals",
-     main = "Residuals vs. Fitted Values Plot After Transformation")
-abline(h = 0, col = "red")
-
-TukeyHSD(inv_anova_model)
-
-
-```
-
-### Comments
-
-After the inverse transformation, the data seems to fit the conditions much better with one outlying in the normality condition, and the Tukey plot suggests that the Additivity is normal since the data points are distributed evenly along the residual line.
 
 # Conclusions
 
