@@ -699,8 +699,11 @@ this condition acceptable.</p>
 <div id="independence" class="section level4">
 <h4>Independence</h4>
 <p>This is assumed based on how the data was collected from the provided
-data set. #### Normality According to the QQ-plot the data seems to be
-Normal.</p>
+data set.</p>
+</div>
+<div id="normality-1" class="section level4">
+<h4>Normality</h4>
+<p>According to the QQ-plot the data seems to be Normal.</p>
 </div>
 <div id="equal-variance-1" class="section level4">
 <h4>Equal Variance</h4>
@@ -708,7 +711,7 @@ Normal.</p>
 Randomness The data is assumed to be random from the way the data was
 collected.</p>
 <p>After calculating the optimal transformation, the data was close to 1
-therefore there is no transformation needed. ##MLR Transformation</p>
+therefore there is no transformation needed. ## MLR Transformation</p>
 <pre class="r"><code># Check if any prices are zero or negative which would prevent log transformation
 sum(combined_data$price &lt;= 0)</code></pre>
 <pre><code>## [1] 0</code></pre>

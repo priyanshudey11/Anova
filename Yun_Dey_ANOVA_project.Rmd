@@ -264,6 +264,7 @@ The data seems to have to have some outriders and a lot deviation from the resid
 
 #### Independence
 This is assumed based on how the data was collected from the provided data set.
+
 #### Normality
 According to the QQ-plot the data seems to be Normal.
 
@@ -273,7 +274,7 @@ The points look to be normally distributed through the data.
 The data is assumed to be random from the way the data was collected. 
 
 After calculating the optimal transformation, the data was close to 1 therefore there is no transformation needed.
-##MLR Transformation
+## MLR Transformation
 ```{r}
 
 
