@@ -190,7 +190,6 @@ The data is assumed to be independent due to the design of the data.
 
 #### Normality
 The QQ-plot shows that the tail ends are not symmetric with the data which could lead to some issues with normality.
-#### Independence
 
 #### Equal Variance
 The Residuals seem to have non constant variance in which the points seem to be skewed to the right
