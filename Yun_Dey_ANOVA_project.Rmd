@@ -173,89 +173,147 @@ summary(anova_model)
 # Assess Model Conditions
 
 
-### Checking Normality
-
+## MLR
 ```{r}
-# Fit the ANCOVA model
-ancova_model <- lm(price ~ model * mileage + location, data = combined_data)
+# Fitting the MLR model
+mlr_model <- lm(price ~ mileage, data = combined_data)
 
-# Checking normality of residuals using a Q-Q plot
-qqnorm(residuals(ancova_model))
-qqline(residuals(ancova_model), col = "steelblue")
-
-```
-### Checking Homoscedasticity
-
-```{r}
-# Scatter plot of residuals against fitted values to assess homoscedasticity
-plot(fitted(ancova_model), residuals(ancova_model),
-     xlab = "Fitted Values", ylab = "Residuals",
-     main = "Residuals vs. Fitted Values Plot")
-abline(h = 0, col = "red")
-```
-
-### Comments
-## MLR Conditions
-
-```{r}
 # Checking linearity and independence for MLR
 ggplot(combined_data, aes(x = mileage, y = price)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, col = "blue") +
   labs(title = "Scatter Plot of Price vs Mileage for MLR",
        x = "Mileage", y = "Price")
-```
-#### Normality
-  The qq-plot of shows devations from normality esspecially at the tails of the distribution
-#### Homoscedasticity
-- The residuals vs. fitted values plot shows a random dispersion of residuals around the horizontal line, suggesting that homoscedasticity is reasonable.
 
+# Check for normality of residuals
+qqnorm(residuals(mlr_model))
+qqline(residuals(mlr_model), col = "steelblue", lwd = 2)
 
-
-```{r}
-# Fit the ANCOVA model
-ancova_model <- lm(price ~ model * mileage + location, data = combined_data)
-
-# Calculate the mean of each fitted value and its corresponding residual
-residuals <- residuals(ancova_model)
-fitted_values <- fitted(ancova_model)
-mean_residuals <- apply(cbind(residuals, fitted_values), 1, mean)
-
-# Create the Tukey mean-difference plot
-plot(mean_residuals, residuals,
-     xlab = "Mean of Fitted and Observed Values",
-     ylab = "Residuals",
-     main = "Tukey Mean-Difference Plot")
-abline(h = 0, col = "red")
-anova_model <- aov(price ~ model + location, data = combined_data)
-
-# Perform Tukey HSD test
-TukeyHSD(anova_model)
-```
-
-```{r}
-# Apply log tinverse ransformation to the 'price' variable to stabilize variance
-combined_data$inv_price <- 1/combined_data$price
-
-inv_ancova_model <- lm(inv_price ~ model * mileage + location, data = combined_data)
-summary(inv_ancova_model)
-
-# And then check the model assumptions again, starting with normality
-qqnorm(residuals(inv_ancova_model))
-qqline(residuals(inv_ancova_model), col = "steelblue")
-# Homoscedasticity check using residuals vs. fitted values plot
-plot(fitted(inv_ancova_model), residuals(inv_ancova_model),
+# Check for homoscedasticity
+plot(fitted(mlr_model), residuals(mlr_model),
      xlab = "Fitted Values", ylab = "Residuals",
-     main = "Residuals vs. Fitted Values Plot")
+     main = "Residuals vs. Fitted Values Plot for MLR")
 abline(h = 0, col = "red")
+```
+### Comments
+
+#### Linearity:
+The scatter plot shows that the data seems to be linear
+
+#### Independence
+The data is assumed to be independent due to the design of the data.
+
+#### Normality
+The QQ-plot shows that the tail ends are not symmetric with the data which could lead to some issues with normality.
+#### Independence
+
+#### Equal Variance
+The Residuals seem to have nonconstant variance in which the points seem to be skewed to the right
+
+#### Randomness
+The data collected from the source seems to be a random sampling of data points.
+
+
+## Anova
+```{r}
+# Fitting the ANOVA model
+anova_model1 <- aov(price ~ model + location + model:location, data = combined_data)
+
+# Check for normality of residuals
+qqnorm(residuals(anova_model1))
+qqline(residuals(anova_model1), col = "steelblue", lwd = 2)
+
+# Check for homoscedasticity
+plot(fitted(anova_model1), residuals(anova_model1),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values Plot for ANOVA")
+abline(h = 0, col = "red")
+
+# Perform Tukey HSD test to assess differences among group means
+TukeyHSD(anova_model1)
+
+```
+### Comments
+
+#### Constant Additivity
+The data seems to have to have some outriders and a lot deviation from the residual line. However, there seems to be no pattern therefore this condition is not correct.
+
+#### Independence
+This is assumed based on how the data was collected from the provided data set.
+#### Normality
+The tails deviate from the ends suggesting that the data is skewed right.
+
+#### Equal Variance
+There seems to be no pattern in the 
+#### Randomness
+
+
+##MLR Transformation
+```{r}
+
+
+# Check if any prices are zero or negative which would prevent log transformation
+sum(combined_data$price <= 0)
+
+# Assuming all prices are positive
+combined_data$log_price <- log(combined_data$price)
+
+# Fit the MLR model with the transformed price
+log_mlr_model <- lm(log_price ~ mileage, data = combined_data)
+summary(log_mlr_model)
+# Checking linearity and independence for transformed MLR
+ggplot(combined_data, aes(x = mileage, y = log_price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  labs(title = "Scatter Plot of Log Price vs Mileage for MLR",
+       x = "Mileage", y = "Log Price")
+
+# Checking normality of residuals for transformed MLR
+qqnorm(residuals(log_mlr_model))
+qqline(residuals(log_mlr_model), col = "steelblue", lwd = 2)
+
+# Checking homoscedasticity for transformed MLR
+plot(fitted(log_mlr_model), residuals(log_mlr_model),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values Plot for Transformed MLR")
+abline(h = 0, col = "red")
+
+```
+
+
+### Comments
+
+After the transformation, the data seems to fit the LINER conditions more suggesting a log transformation was needed for the Normality condition to be met.
+
+
+
+##Anova Transformation
+
+```{r}
+# Apply inverse transformation to the 'price' variable to stabilize variance
+combined_data$inv_price <- log(combined_data$price)
+
+# Refit the ANCOVA model with the transformed variable
+inv_anova_model <- lm(price ~ model + location + model:location, data = combined_data)
+summary(inv_anova_model)
+
+# Re-checking model assumptions
+qqnorm(residuals(inv_anova_model))
+qqline(residuals(inv_anova_model), col = "steelblue")
+plot(fitted(inv_anova_model), residuals(inv_anova_model),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residuals vs. Fitted Values Plot After Transformation")
+abline(h = 0, col = "red")
+
+TukeyHSD(inv_anova_model)
+
+
 ```
 
 ### Comments
-  Based on the tukey summary we where able to see that a inverse transformation would be better sutied for the data. 
-#### Normality
-  The new qq-plot of shows devations at the end with some outliyers but the data is more normal than before
-#### Homoscedasticity
-- The residuals vs. fitted values plot shows a random dispersion of residuals around the horizontal line, suggesting that homoscedasticity is reasonable.
+
+After the inverse transformation, the data seems to fit the conditions much better with one outlying in the normality condition, and the Tukey plot suggests that the Additivity is normal since the data points are distributed evenly along the residual line.
+
 # Conclusions
 
-The primary objective of this study was to investigate the influence of used vechiles pricing based on the geographical location, milage, and car model.The car model has a significant impact on the pricing of the used vechiles. The ANOVa results indicate that differnt car modesl have differnt average prices with the F-150 having the higher car price between the two cars. While locatin was not found to be significant the ANOVA model, there was a significant interaction effect between location and car model on car prices. This implies that the influnce of car model on prive varies by geographic location. The dignostic plots revealed some devations from nomaloty and the presence of outliers but suporrted the CAINER assumotions well enogh to go on with the experiment. The findings highlight the complextiy of used cehile priceing and the importance of cinsidering multifacted set of factors. Consumers and auto dealers can make a estimated guess on what the car vehicle price should be based on the milage, model and location of where it is being sold or bought. While the study provided beneficial insights, further research could explore additional factors such as the vehicle's condition, features, and market demand to enhance the predictive accuracy of car pricing models. In conclusion tje rei;ts offer a foundation for a more informed understanding of vehicle valuation.
+The primary objective of this study was to investigate the influence of used vehicle pricing based on the geographical location, mileage, and car model. The analysis revealed that there is a significant difference in pricing based on the anova model. The Ford F-150 had an average price that was higher than both the Jeep Cherokee and Honda Civic, about $18,000 and $20,000 respectively. While the location did not show a significant impact on the pricing the interaction suggests there is a price difference between the Ford F-150 and other models was more pronounced in State College than in Charlotte. It is better to sell the F-150 at the State College and avoid buying them at State College. In the model as mileage increases the price decreases which is around $8.95 per 1,000 miles added to the vehicle. This research provided a foundational understanding of how car pricing varies by model, location, and model.
