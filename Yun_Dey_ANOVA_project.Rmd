@@ -2,8 +2,8 @@
 title: "ANOVA project"
 author: "Michael Yun, Priyanshu Dey"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r, echo=F, include=F, warning=FALSE, message=FALSE}
