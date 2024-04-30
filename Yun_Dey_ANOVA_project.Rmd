@@ -195,7 +195,16 @@ abline(h = 0, col = "red")
 ```
 
 ### Comments
+## MLR Conditions
 
+```{r}
+# Checking linearity and independence for MLR
+ggplot(combined_data, aes(x = mileage, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  labs(title = "Scatter Plot of Price vs Mileage for MLR",
+       x = "Mileage", y = "Price")
+```
 #### Normality
   The qq-plot of shows devations from normality esspecially at the tails of the distribution
 #### Homoscedasticity
